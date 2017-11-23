@@ -1,4 +1,4 @@
-package my.group.chitchat;
+package si.zrimsek.chitchat;
 
 import org.apache.http.client.fluent.Request;
 
