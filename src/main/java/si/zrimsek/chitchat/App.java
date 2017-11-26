@@ -3,10 +3,16 @@ package si.zrimsek.chitchat;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 /**
  * Hello ChitChat!
@@ -17,14 +23,21 @@ public class App {
     						.execute()
                             .returnContent().asString();
         System.out.println(hello);
+        
+        login("Ursa");
+        login("hbl");
+        getUsers();
+        sendMessage(false, "Ursa", "Toto", "Vse najboljse za 13. rojstni dan!");
+        sendMessage(true, "Ursa", "....", "dkflw!");
+        recieveMessages("Toto");
     }
     
     
     public static void getUsers() throws ClientProtocolException, IOException {
     	String users = Request.Get("http://chitchat.andrej.com/users")
-								.execute()
-								.returnContent()
-								.asString();
+							.execute()
+							.returnContent()
+							.asString();
 	    
     	System.out.println(users);
     }
@@ -36,9 +49,9 @@ public class App {
 	    				.addParameter("username", user)
 	    				.build();
 	    	String responseBody = Request.Post(uri)
-	                         		.execute()
-	                         		.returnContent()
-	                         		.asString();
+	                         			.execute()
+	                         			.returnContent()
+	                         			.asString();
 	
 	    	System.out.println(responseBody);
 	    }
@@ -53,13 +66,50 @@ public class App {
 		          .addParameter("username", user)
 		          .build();
 		String responseBody = Request.Delete(uri)
-		                               .execute()
-		                               .returnContent()
-		                               .asString();
+									.execute()
+		                            .returnContent()
+		                            .asString();
 		System.out.println(responseBody);
     }
     
 
     
+    public static List<Message> recieveMessages(String user) throws URISyntaxException, ClientProtocolException, IOException {
+		URI uri = new URIBuilder("http://chitchat.andrej.com/messages")
+					.addParameter("username", user)
+					.build();
+
+		String received = Request.Get(uri)
+								.execute()
+		                        .returnContent()
+		                        .asString();
+		
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.setDateFormat(new ISO8601DateFormat());
+		TypeReference<List<Message>> t = new TypeReference<List<Message>>() { };
+		List<Message> messages = mapper.readValue(received, t);
+		System.out.println(received);
+		return messages;
+    }
+    
+    
+    public static void sendMessage(Boolean global, String sender, String recipient, String text) throws ClientProtocolException, IOException, URISyntaxException {
+    	  URI uri = new URIBuilder("http://chitchat.andrej.com/messages")
+    	          .addParameter("username", sender)
+    	          .build();
+    	  String message = "";
+    	  if (global) {
+    		  message = "{\"global\" : true, \"text\" :\"" + text + "\"}";
+    	  } else {
+    		  message = "{\"global\" : false, \"recipient\" : \"" + recipient + "\", \"text\" :\"" + text + "\"}";
+    	  }
+    	  String responseBody = Request.Post(uri)
+    	          .bodyString(message, ContentType.APPLICATION_JSON)
+    	          .execute()
+    	          .returnContent()
+    	          .asString();
+
+    	  System.out.println(message);
+    }
     
 }
