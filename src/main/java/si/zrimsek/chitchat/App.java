@@ -20,20 +20,20 @@ public class App {
     }
     
     
-    public static void seznamUporabnikov() throws ClientProtocolException, IOException {
-    	String uporabniki = Request.Get("http://chitchat.andrej.com/users")
+    public static void getUsers() throws ClientProtocolException, IOException {
+    	String users = Request.Get("http://chitchat.andrej.com/users")
 								.execute()
 								.returnContent()
 								.asString();
 	    
-    	System.out.println(uporabniki);
+    	System.out.println(users);
     }
     
     
-    public static void prijava(String uporabnik) throws URISyntaxException, ClientProtocolException, IOException {
+    public static void login(String user) throws URISyntaxException, ClientProtocolException, IOException {
 	    try {	
     		URI uri = new URIBuilder("http://chitchat.andrej.com/users")
-	    				.addParameter("username", uporabnik)
+	    				.addParameter("username", user)
 	    				.build();
 	    	String responseBody = Request.Post(uri)
 	                         		.execute()
@@ -43,14 +43,14 @@ public class App {
 	    	System.out.println(responseBody);
 	    }
 	    catch (Exception HttpResponseException) {
-	    	System.out.println("To uporabniško ime je že zasedeno");
+	    	System.out.println("User already exists");
 	    }
     }
     
     
-    public static void odjava(String uporabnik) throws URISyntaxException, ClientProtocolException, IOException {
+    public static void logout(String user) throws URISyntaxException, ClientProtocolException, IOException {
     	URI uri = new URIBuilder("http://chitchat.andrej.com/users")
-		          .addParameter("username", uporabnik)
+		          .addParameter("username", user)
 		          .build();
 		String responseBody = Request.Delete(uri)
 		                               .execute()
