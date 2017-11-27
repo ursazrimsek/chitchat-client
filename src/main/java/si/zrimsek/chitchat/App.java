@@ -24,8 +24,8 @@ public class App {
                             .returnContent().asString();
         System.out.println(hello);
         
-        login("Ursa");
-        login("hbl");
+        logIn("Ursa2");
+        logIn("Toto");
         getUsers();
         sendMessage(false, "Ursa", "Toto", "Vse najboljse za 13. rojstni dan!");
         sendMessage(true, "Ursa", "....", "dkflw!");
@@ -33,17 +33,20 @@ public class App {
     }
     
     
-    public static void getUsers() throws ClientProtocolException, IOException {
+    public static String getUsers() throws ClientProtocolException, IOException {
     	String users = Request.Get("http://chitchat.andrej.com/users")
 							.execute()
 							.returnContent()
 							.asString();
-	    
-    	System.out.println(users);
+//    	ObjectMapper mapper = new ObjectMapper();
+//		mapper.setDateFormat(new ISO8601DateFormat());
+//		TypeReference<List<User>> t = new TypeReference<List<User>>() { };
+//		List<User> users_object = mapper.readValue(users, t);
+		return users;
     }
     
     
-    public static void login(String user) throws URISyntaxException, ClientProtocolException, IOException {
+    public static String logIn(String user) throws URISyntaxException, ClientProtocolException, IOException {
 	    try {	
     		URI uri = new URIBuilder("http://chitchat.andrej.com/users")
 	    				.addParameter("username", user)
@@ -53,15 +56,15 @@ public class App {
 	                         			.returnContent()
 	                         			.asString();
 	
-	    	System.out.println(responseBody);
+	    	return responseBody;
 	    }
 	    catch (Exception HttpResponseException) {
-	    	System.out.println("User already exists");
+	    	return "User already exists";
 	    }
     }
     
     
-    public static void logout(String user) throws URISyntaxException, ClientProtocolException, IOException {
+    public static String logOut(String user) throws URISyntaxException, ClientProtocolException, IOException {
     	URI uri = new URIBuilder("http://chitchat.andrej.com/users")
 		          .addParameter("username", user)
 		          .build();
@@ -69,7 +72,7 @@ public class App {
 									.execute()
 		                            .returnContent()
 		                            .asString();
-		System.out.println(responseBody);
+		return responseBody;
     }
     
 
@@ -88,12 +91,11 @@ public class App {
 		mapper.setDateFormat(new ISO8601DateFormat());
 		TypeReference<List<Message>> t = new TypeReference<List<Message>>() { };
 		List<Message> messages = mapper.readValue(received, t);
-		System.out.println(received);
 		return messages;
     }
     
     
-    public static void sendMessage(Boolean global, String sender, String recipient, String text) throws ClientProtocolException, IOException, URISyntaxException {
+    public static String sendMessage(Boolean global, String sender, String recipient, String text) throws ClientProtocolException, IOException, URISyntaxException {
     	  URI uri = new URIBuilder("http://chitchat.andrej.com/messages")
     	          .addParameter("username", sender)
     	          .build();
@@ -108,8 +110,8 @@ public class App {
     	          .execute()
     	          .returnContent()
     	          .asString();
-
-    	  System.out.println(message);
+    	  
+    	  return responseBody;
     }
     
 }

@@ -7,10 +7,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.net.URISyntaxException;
 
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.MenuSelectionManager;
 import javax.swing.JMenuBar;
 import javax.swing.JPopupMenu;
 import java.awt.Component;
@@ -25,9 +30,11 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JMenu;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
-import javax.swing.DropMode;
 import java.awt.Font;
 import javax.swing.border.BevelBorder;
+
+import org.apache.http.client.ClientProtocolException;
+
 import java.awt.Color;
 import java.awt.SystemColor;
 
@@ -35,11 +42,16 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	
 	private JTextArea output;
 	private JTextField input;
-	private JTextField nickname;
+	private String nickname;
+	private String recipient;
 	private JTextArea signedInUsers;
-	private JTextField recipient;
+	private JTextField txt_recipient;
 	private JComboBox<String> windowColor;
 	private JRadioButton global;
+	private JTextField txt_nickname;
+	private JMenu mnWindow;
+	private JButton btnSignIn;
+	private JButton btnSignOut;
 
 	public ChatFrame() {
 		super();
@@ -51,10 +63,10 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		
 		this.setTitle("ChitChat");
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
-		
+
+		this.nickname = System.getProperty("user.name");
 		
 		// POGOVOR
-		
 		// Output
 		this.output = new JTextArea(20, 40);
 		this.output.setEditable(false);
@@ -72,6 +84,8 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		
 		// Input
 		this.input = new JTextField(40);
+		input.addActionListener(this);
+		input.addKeyListener(this);
 		GridBagConstraints inputConstraint = new GridBagConstraints();
 		inputConstraint.insets = new Insets(0, 0, 0, 5);
 		inputConstraint.gridwidth = 2;
@@ -79,6 +93,13 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		inputConstraint.gridx = 0;
 		inputConstraint.gridy = 3;
 		pane.add(input, inputConstraint);
+		
+		
+		addWindowListener(new WindowAdapter() {
+		    public void windowOpened( WindowEvent e ){
+		        input.requestFocus();
+		    }
+		});
 		
 		
 		// Vpisani uporabniki
@@ -111,7 +132,9 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		pane.add(siuScroll, usersConstraints);
 		
 		// Prejemnik
-		recipient = new JTextField();
+		txt_recipient = new JTextField();
+		txt_recipient.addActionListener(this);
+		txt_recipient.addKeyListener(this);
 		GridBagConstraints recipientConstraints = new GridBagConstraints();
 		recipientConstraints.gridheight = 1;
 		recipientConstraints.weightx = 1.0;
@@ -119,13 +142,12 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		recipientConstraints.insets = new Insets(0, 0, 0, 5);
 		recipientConstraints.gridx = 2;
 		recipientConstraints.gridy = 3;
-		recipient.setHorizontalAlignment(SwingConstants.LEFT);
-		recipient.setText("Prejemnik");
-		recipient.setToolTipText("Vnesite prejemnika");
-		pane.add(recipient, recipientConstraints);
+		txt_recipient.setHorizontalAlignment(SwingConstants.LEFT);
+		txt_recipient.setText("Prejemnik");
+		txt_recipient.setToolTipText("Vnesite prejemnika");
+		pane.add(txt_recipient, recipientConstraints);
 		
 		
-			
 		
 		// MENIJI
 		
@@ -136,10 +158,12 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		JMenu mnSignInOut = new JMenu("ChitChat");
 		menuBar.add(mnSignInOut);
 		
-		JButton btnSignIn = new JButton("Prijava");
+		btnSignIn = new JButton("Prijava");
+		btnSignIn.addActionListener(this);
 		mnSignInOut.add(btnSignIn);
 		
-		JButton btnSignOut = new JButton("Odjava");
+		btnSignOut = new JButton("Odjava");
+		btnSignOut.addActionListener(this);
 		mnSignInOut.add(btnSignOut);
 		
 		// Pisava
@@ -147,37 +171,43 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		menuBar.add(mnFont);
 		
 		JComboBox<String> fontColor = new JComboBox<String>();
+		fontColor.addActionListener(this);
 		mnFont.add(fontColor);
 		fontColor.setModel(new DefaultComboBoxModel<String>(new String[] {"Rdeča", "Rumena", "Modra", "Zelena"}));
 		fontColor.setToolTipText("Barva pisave");
 		
 		JComboBox<Integer> fontSize = new JComboBox<Integer>();
+		fontSize.addActionListener(this);
 		mnFont.add(fontSize);
 		fontSize.setModel(new DefaultComboBoxModel<Integer>(new Integer[] {10, 12, 14, 16}));
 		fontSize.setToolTipText("Velikost pisave");
 		
 		// Okno
-		JMenu mnWindow = new JMenu("Več");
+		mnWindow = new JMenu("Več");
 		menuBar.add(mnWindow);
 		
+		
 				// Vzdevek
-		nickname = new JTextField();
-		nickname.setDropMode(DropMode.USE_SELECTION);
-		mnWindow.add(nickname);
-		nickname.setHorizontalAlignment(SwingConstants.LEFT);
-		nickname.setToolTipText("Izberite si svoj vzdevek");
-		nickname.setText(System.getProperty("user.name"));
+		txt_nickname = new JTextField();
+		txt_nickname.addActionListener(this);
+		txt_nickname.addKeyListener(this);
+		mnWindow.add(txt_nickname);
+		txt_nickname.setHorizontalAlignment(SwingConstants.LEFT);
+		txt_nickname.setToolTipText("Izberite si svoj vzdevek");
+		txt_nickname.setText(this.nickname); // a je to treba?
 		
 
 		
 				// Barva okna
 		windowColor = new JComboBox<String>();
+		windowColor.addActionListener(this);
 		windowColor.setModel(new DefaultComboBoxModel<String>(new String[] {"Modra", "Rumena", "Zelena"}));
 		windowColor.setToolTipText("Nastavite barvo okna");
 		mnWindow.add(windowColor);
 		
 		// Javno
 		global = new JRadioButton("Javno");
+		global.addActionListener(this);
 		global.setHorizontalAlignment(SwingConstants.RIGHT);
 		global.setSelected(true);
 		menuBar.add(global);
@@ -194,15 +224,43 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	}
 	
 	public void actionPerformed(ActionEvent e) {
+		Object source = e.getSource();
+		if (source == this.btnSignIn) {
+//			if (!signedIn(nickname));	
+				try {
+					App.logIn(nickname);
+				} catch (ClientProtocolException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (URISyntaxException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
 	}
 
 	public void keyTyped(KeyEvent e) {
-		if (e.getSource() == this.input) {
+		Object source = e.getSource();
+		if (source == this.txt_nickname) {
 			if (e.getKeyChar() == '\n') {
-				this.addMessage(System.getProperty("user.name"), this.input.getText());
+				this.nickname = this.txt_nickname.getText();
+				MenuSelectionManager.defaultManager().clearSelectedPath();
+				this.input.requestFocus();
+			}
+		} if (source == this.txt_recipient) {
+			if (e.getKeyChar() == '\n') {
+				this.recipient = this.txt_recipient.getText();
+				this.input.requestFocus();
+				}
+		} if (source == this.input) {
+			if (e.getKeyChar() == '\n') {
+				this.addMessage(this.nickname, this.input.getText());
 				this.input.setText("");
 			}
-		}		
+		}
 	}
 
 	public void keyPressed(KeyEvent e) {
