@@ -8,6 +8,9 @@ public class ChitChat {
 		robot.activate();
 		chatFrame.pack();
 		chatFrame.setVisible(true);
+
+		
+			
 	}
 
 }
