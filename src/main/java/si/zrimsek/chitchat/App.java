@@ -27,10 +27,10 @@ public class App {
         logIn("Ursa");
         logIn("Toto");
 //        getUsers();
-//        sendMessage(false, "Ursa", "Toto", "Vse najboljse za 13. rojstni dan!");
+  //      sendMessage(false, "Ursa", "Toto", "Vse najboljse za 13. rojstni dan!");
 //        sendMessage(false, "vsiljivec", "Toto", "Vse najboljse za 13. rojstni dan!");
 //        sendMessage(true, "Ursa", "....", "dkflw!");
-//        recieveMessages("Toto");
+        recieveMessages("Toto");
     }
     
     
@@ -44,7 +44,6 @@ public class App {
 		mapper.setDateFormat(new ISO8601DateFormat());
 		TypeReference<List<User>> t = new TypeReference<List<User>>() { };
 		List<User> users_object = mapper.readValue(users, t);
-		
 		return users_object;
     }
     
@@ -95,7 +94,7 @@ public class App {
 		mapper.setDateFormat(new ISO8601DateFormat());
 		TypeReference<List<Message>> t = new TypeReference<List<Message>>() { };
 		List<Message> messages = mapper.readValue(received, t);
-		
+		System.out.println(messages);
 		return messages;
     }
     

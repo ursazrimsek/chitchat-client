@@ -18,10 +18,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.MenuSelectionManager;
 import javax.swing.JMenuBar;
-import javax.swing.JPopupMenu;
-import java.awt.Component;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import javax.swing.JRadioButton;
 import java.awt.Insets;
 import javax.swing.JComboBox;
@@ -38,7 +34,6 @@ import org.apache.http.client.ClientProtocolException;
 
 import java.awt.Color;
 import java.awt.SystemColor;
-import java.awt.ComponentOrientation;
 
 public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	
@@ -56,6 +51,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	private JButton btnSignIn;
 	private JButton btnSignOut;
 	private JButton btnDelete;
+	private JButton btnTest;
 
 	public ChatFrame() {
 		super();
@@ -70,6 +66,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 
 		this.nickname = System.getProperty("user.name");
 		this.signedInUsers = new String();
+		this.recipient = new String("");
 		
 		// POGOVOR
 		// Output
@@ -140,8 +137,12 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		usersConstraints.gridy = 1;
 		pane.add(siuScroll, usersConstraints);
 		
+		btnTest = new JButton("TEST");
+		btnTest.addActionListener(this);
+		siuScroll.setRowHeaderView(btnTest);
+		
 		// Prejemnik
-		txt_recipient = new JTextField();
+		txt_recipient = new JTextField("Prejemnik");
 		txt_recipient.addActionListener(this);
 		txt_recipient.addKeyListener(this);
 		GridBagConstraints recipientConstraints = new GridBagConstraints();
@@ -152,7 +153,6 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		recipientConstraints.gridx = 2;
 		recipientConstraints.gridy = 3;
 		txt_recipient.setHorizontalAlignment(SwingConstants.LEFT);
-		txt_recipient.setText("Prejemnik");
 		txt_recipient.setToolTipText("Vnesite prejemnika");
 		pane.add(txt_recipient, recipientConstraints);
 		
@@ -228,7 +228,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		global.setToolTipText("Javno ali zasebno sporočilo?");
 	}
 	
-	public String getSignedInUsers() throws ClientProtocolException, IOException {
+	public String getSignedInUsers() throws ClientProtocolException, IOException {			// TODO vsako sekundo
 		List<User> users = App.getUsers();
 		this.signedInUsers = "";
 		for (User user : users) {
@@ -246,13 +246,23 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		}
 	}
 
-	/**
-	 * @param person - the person sending the message
-	 * @param message - the message content
-	 */
-	public void addMessage(String person, String message) {
+
+	public void addSentMessage(String person, String message) throws ClientProtocolException, IOException, URISyntaxException {
 		String chat = this.output.getText();
 		this.output.setText(chat + person + ": " + message + "\n");
+		App.sendMessage(global.isSelected(), person, this.recipient, message);
+	}
+	
+	public void addRecievedMessage() throws ClientProtocolException, URISyntaxException, IOException {			// TODO vsako sekundo 
+		if (signedIn(this.nickname)) {
+			List<Message> newMessages = App.recieveMessages(this.nickname);
+			if (! newMessages.isEmpty()) {
+				String chat = this.output.getText();
+				for (Message message : newMessages) {
+					this.output.setText(chat + message.getSender() + ": " + message.getText() + "\n");
+				}
+			}
+		}
 	}
 	
 	public void actionPerformed(ActionEvent e) {
@@ -283,6 +293,31 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 				}
 		} if (source == this.btnDelete) {
 			this.output.setText("");
+		} if (source == this.global) {
+			if (! this.global.isSelected()) {
+				if (this.recipient.length() == 0) {
+					this.txt_recipient.setText("");
+					this.txt_recipient.requestFocus();
+					this.input.setEditable(false);
+					this.input.setText("Izberite prejemnika ali pošiljajte javno sporočilo!");
+				} else {
+					this.input.setEditable(true);
+					this.input.setText("");
+				}
+			}
+		} if (source == this.btnTest) {
+			try {
+				addRecievedMessage();
+			} catch (ClientProtocolException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (URISyntaxException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		}
 			
 		
@@ -300,12 +335,22 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 			if (e.getKeyChar() == '\n') {
 				this.recipient = this.txt_recipient.getText();
 				this.global.setSelected(false);
+				this.input.setEditable(true);
 				this.input.requestFocus();
+				this.input.setText("");
 				}
 		} if (source == this.input) {
 			if (e.getKeyChar() == '\n') {
-				this.addMessage(this.nickname, this.input.getText());
-				this.input.setText("");
+				try {
+					this.addSentMessage(this.nickname, this.input.getText());
+					this.input.setText("");
+				} catch (ClientProtocolException e1) {
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				} catch (URISyntaxException e1) {
+					e1.printStackTrace();
+				}
 			}
 		}
 	}

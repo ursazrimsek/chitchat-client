@@ -1,7 +1,11 @@
 package si.zrimsek.chitchat;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.apache.http.client.ClientProtocolException;
 
 public class PrimeRobot extends TimerTask {
 	private ChatFrame chat;
@@ -30,7 +34,18 @@ public class PrimeRobot extends TimerTask {
 	@Override
 	public void run() {
 		if (isPrime(this.k)) {
-			chat.addMessage("primer", Integer.toString(this.k) + " is prime");
+			try {
+				chat.addSentMessage("primer", Integer.toString(this.k) + " is prime");
+			} catch (ClientProtocolException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		this.k++;
 	}
