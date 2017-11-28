@@ -11,6 +11,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
@@ -37,6 +38,7 @@ import org.apache.http.client.ClientProtocolException;
 
 import java.awt.Color;
 import java.awt.SystemColor;
+import java.awt.ComponentOrientation;
 
 public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	
@@ -44,7 +46,8 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	private JTextField input;
 	private String nickname;
 	private String recipient;
-	private JTextArea signedInUsers;
+	private String signedInUsers;
+	private JTextArea txt_signedInUsers;
 	private JTextField txt_recipient;
 	private JComboBox<String> windowColor;
 	private JRadioButton global;
@@ -52,6 +55,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	private JMenu mnWindow;
 	private JButton btnSignIn;
 	private JButton btnSignOut;
+	private JButton btnDelete;
 
 	public ChatFrame() {
 		super();
@@ -65,6 +69,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
 
 		this.nickname = System.getProperty("user.name");
+		this.signedInUsers = new String();
 		
 		// POGOVOR
 		// Output
@@ -84,6 +89,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		
 		// Input
 		this.input = new JTextField(40);
+		input.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		input.addActionListener(this);
 		input.addKeyListener(this);
 		GridBagConstraints inputConstraint = new GridBagConstraints();
@@ -103,24 +109,27 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		
 		
 		// Vpisani uporabniki
-		JTextField txtSignedInUsers = new JTextField();
-		txtSignedInUsers.setBorder(null);
-		txtSignedInUsers.setHorizontalAlignment(SwingConstants.LEFT);
-		txtSignedInUsers.setFont(new Font("Arial Black", Font.PLAIN, 11));
-		txtSignedInUsers.setEditable(false);
-		txtSignedInUsers.setText("Prijavljeni:");
-		GridBagConstraints gbc_txtSignedInUsers = new GridBagConstraints();
-		gbc_txtSignedInUsers.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtSignedInUsers.insets = new Insets(0, 0, 5, 5);
-		gbc_txtSignedInUsers.gridx = 2;
-		gbc_txtSignedInUsers.gridy = 0;
-		getContentPane().add(txtSignedInUsers, gbc_txtSignedInUsers);
-		txtSignedInUsers.setColumns(10);
+				// Napis
+		JTextField txtSignedIn = new JTextField();
+		txtSignedIn.setBorder(null);
+		txtSignedIn.setHorizontalAlignment(SwingConstants.LEFT);
+		txtSignedIn.setFont(new Font("Arial Black", Font.PLAIN, 11));
+		txtSignedIn.setEditable(false);
+		txtSignedIn.setText("Prijavljeni:");
+		GridBagConstraints gbc_txtSignedIn = new GridBagConstraints();
+		gbc_txtSignedIn.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtSignedIn.insets = new Insets(0, 0, 5, 5);
+		gbc_txtSignedIn.gridx = 2;
+		gbc_txtSignedIn.gridy = 0;
+		getContentPane().add(txtSignedIn, gbc_txtSignedIn);
+		txtSignedIn.setColumns(10);
 		
-		signedInUsers = new JTextArea(0, 10);
-		signedInUsers.setBackground(SystemColor.menu);
-		signedInUsers.setEditable(false);
-		JScrollPane siuScroll = new JScrollPane(signedInUsers);
+				// Seznam
+		txt_signedInUsers = new JTextArea(0, 10);
+		txt_signedInUsers.setBackground(SystemColor.menu);
+		txt_signedInUsers.setEditable(false);
+		txt_signedInUsers.setText(signedInUsers);
+		JScrollPane siuScroll = new JScrollPane(txt_signedInUsers);
 		siuScroll.setViewportBorder(new BevelBorder(BevelBorder.LOWERED, Color.DARK_GRAY, Color.LIGHT_GRAY, null, null));
 		GridBagConstraints usersConstraints = new GridBagConstraints();
 		usersConstraints.gridheight = 2;
@@ -196,14 +205,19 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		txt_nickname.setToolTipText("Izberite si svoj vzdevek");
 		txt_nickname.setText(this.nickname); // a je to treba?
 		
-
-		
 				// Barva okna
 		windowColor = new JComboBox<String>();
 		windowColor.addActionListener(this);
 		windowColor.setModel(new DefaultComboBoxModel<String>(new String[] {"Modra", "Rumena", "Zelena"}));
 		windowColor.setToolTipText("Nastavite barvo okna");
 		mnWindow.add(windowColor);
+		
+				// Pobriši
+		btnDelete = new JButton("Zbriši pogovor");
+		btnDelete.addActionListener(this);
+		btnDelete.setAlignmentX(1.0f);
+		btnDelete.setToolTipText("Pobriše dosedanji pogovor");
+		mnWindow.add(btnDelete);
 		
 		// Javno
 		global = new JRadioButton("Javno");
@@ -212,6 +226,24 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		global.setSelected(true);
 		menuBar.add(global);
 		global.setToolTipText("Javno ali zasebno sporočilo?");
+	}
+	
+	public String getSignedInUsers() throws ClientProtocolException, IOException {
+		List<User> users = App.getUsers();
+		this.signedInUsers = "";
+		for (User user : users) {
+			this.signedInUsers += user.getUsername() + "\n";
+		}
+		this.txt_signedInUsers.setText(this.signedInUsers);
+		return signedInUsers;
+	}
+	
+	private Boolean signedIn(String user) {
+		if (this.signedInUsers.length() == 0) {
+			return false;
+		} else {
+			return this.signedInUsers.contains(user);
+		}
 	}
 
 	/**
@@ -226,20 +258,34 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
 		if (source == this.btnSignIn) {
-//			if (!signedIn(nickname));	
+			if (!signedIn(nickname));	
 				try {
 					App.logIn(nickname);
+					getSignedInUsers(); // ko bo vsako sekundo loh dam tle vn?
 				} catch (ClientProtocolException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				} catch (URISyntaxException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-			}
+		} if (source == this.btnSignOut) {
+			if (signedIn(nickname));	
+				try {
+					App.logOut(nickname);
+					getSignedInUsers(); // ko bo vsako sekundo loh dam tle vn?
+				} catch (ClientProtocolException e1) {
+					e1.printStackTrace();
+				} catch (URISyntaxException e1) {
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+		} if (source == this.btnDelete) {
+			this.output.setText("");
+		}
+			
+		
 	}
 
 	public void keyTyped(KeyEvent e) {
@@ -253,6 +299,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		} if (source == this.txt_recipient) {
 			if (e.getKeyChar() == '\n') {
 				this.recipient = this.txt_recipient.getText();
+				this.global.setSelected(false);
 				this.input.requestFocus();
 				}
 		} if (source == this.input) {
@@ -263,30 +310,26 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		}
 	}
 
-	public void keyPressed(KeyEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void keyPressed(KeyEvent e) { }
 
-	public void keyReleased(KeyEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-	private static void addPopup(Component component, final JPopupMenu popup) {
-		component.addMouseListener(new MouseAdapter() {
-			public void mousePressed(MouseEvent e) {
-				if (e.isPopupTrigger()) {
-					showMenu(e);
-				}
-			}
-			public void mouseReleased(MouseEvent e) {
-				if (e.isPopupTrigger()) {
-					showMenu(e);
-				}
-			}
-			private void showMenu(MouseEvent e) {
-				popup.show(e.getComponent(), e.getX(), e.getY());
-			}
-		});
-	}
-}
+	public void keyReleased(KeyEvent e) { }
+	
+	
+//	private static void addPopup(Component component, final JPopupMenu popup) {
+//		component.addMouseListener(new MouseAdapter() {
+//			public void mousePressed(MouseEvent e) {
+//				if (e.isPopupTrigger()) {
+//					showMenu(e);
+//				}
+//			}
+//			public void mouseReleased(MouseEvent e) {
+//				if (e.isPopupTrigger()) {
+//					showMenu(e);
+//				}
+//			}
+//			private void showMenu(MouseEvent e) {
+//				popup.show(e.getComponent(), e.getX(), e.getY());
+//			}
+//		});
+//	}
+  }

@@ -6,16 +6,18 @@ public class User {
 	private String username;
 	private Date last_active;
 	
-	public User(String username, Date lastActive) {
+	public User() { }
+	
+	public User(String username, Date last_active) {
 		this.username = username;
-		this.last_active = lastActive;
+		this.last_active = last_active;
 	}
 
 	public String getUsername() {
 		return username;
 	}
 
-	public Date getLastActive() {
+	public Date getLast_active() {
 		return last_active;
 	}
 
