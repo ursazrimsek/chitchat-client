@@ -8,8 +8,8 @@ public class ChitChat {
 
 	public static void main(String[] args) throws ClientProtocolException, IOException {
 		ChatFrame chatFrame = new ChatFrame();
-		PrimeRobot robot = new PrimeRobot(chatFrame);
-		robot.activate();
+		CheckRobot check = new CheckRobot(chatFrame);
+		check.activate();
 		chatFrame.pack();
 		chatFrame.setVisible(true);
 		chatFrame.getSignedInUsers();

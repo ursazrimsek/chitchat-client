@@ -48,34 +48,25 @@ public class App {
     }
     
     
-    public static String logIn(String user) throws URISyntaxException, ClientProtocolException, IOException {
+    public static void logIn(String user) throws URISyntaxException, ClientProtocolException, IOException {
 	    try {	
     		URI uri = new URIBuilder("http://chitchat.andrej.com/users")
 	    				.addParameter("username", user)
 	    				.build();
-	    	String responseBody = Request.Post(uri)
-	                         			.execute()
-	                         			.returnContent()
-	                         			.asString();
-	
-	    	return responseBody;
+	    	Request.Post(uri).execute().returnContent().asString();
 	    }
 	    catch (Exception HttpResponseException) {
-	    	return "User already exists";
+	    	System.out.println("User already exists");
 	    }
     }
     
     
-    public static String logOut(String user) throws URISyntaxException, ClientProtocolException, IOException {
+    public static void logOut(String user) throws URISyntaxException, ClientProtocolException, IOException {
     	URI uri = new URIBuilder("http://chitchat.andrej.com/users")
 		          .addParameter("username", user)
 		          .build();
 		
-    	String responseBody = Request.Delete(uri)
-									.execute()
-		                            .returnContent()
-		                            .asString();
-		return responseBody;
+    	Request.Delete(uri).execute().returnContent().asString();
     }
     
 
@@ -99,7 +90,7 @@ public class App {
     }
     
     
-    public static String sendMessage(Boolean global, String sender, String recipient, String text) throws ClientProtocolException, IOException, URISyntaxException {
+    public static void sendMessage(Boolean global, String sender, String recipient, String text) throws ClientProtocolException, IOException, URISyntaxException {
     	  URI uri = new URIBuilder("http://chitchat.andrej.com/messages")
     	          .addParameter("username", sender)
     	          .build();
@@ -112,15 +103,12 @@ public class App {
     	  }
     	  
     	  try {
-    	  String responseBody = Request.Post(uri)
-    	          .bodyString(message, ContentType.APPLICATION_JSON)
-    	          .execute()
-    	          .returnContent()
-    	          .asString();
-    	  return responseBody;
+    	  Request.Post(uri).bodyString(message, ContentType.APPLICATION_JSON)
+    	          		.execute()
+    	          		.returnContent().asString();
     	  } 
     	  catch (Exception HttpResponseException) {
-    		  return sender + "not logged in";
+    		  System.out.println(sender + "not logged in");
   	      }
     }
     

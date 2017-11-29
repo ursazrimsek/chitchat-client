@@ -32,6 +32,7 @@ import org.apache.http.client.ClientProtocolException;
 
 import java.awt.Color;
 import java.awt.SystemColor;
+import java.awt.Window;
 import java.awt.Cursor;
 import javax.swing.border.LineBorder;
 import java.awt.Component;
@@ -43,6 +44,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	private JTextArea output;
 	private JTextField input;
 	private String nickname;
+	private String previousNickname;
 	private String recipient;
 	private String signedInUsers;
 	private JTextArea txt_signedInUsers;
@@ -76,7 +78,6 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 1.0, 0.0};
 		gridBagLayout.columnWeights = new double[]{1.0, 0.0, 0.0};
 		pane.setLayout(gridBagLayout);
-	//	pane.setBackground(Color.BLACK);
 		
 		this.setTitle("ChitChat");
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -204,7 +205,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		txt_nickname.addKeyListener(this);
 		txt_nickname.setHorizontalAlignment(SwingConstants.LEFT);
 		txt_nickname.setToolTipText("Izberite si svoj vzdevek");
-		txt_nickname.setText(this.nickname); // a je to treba?
+		txt_nickname.setText(this.nickname);
 		mnSignInOut.add(btnSignIn);
 		
 		btnSignOut = new JButton("Odjava");
@@ -256,11 +257,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		mnWindow = new JMenu("Okno");
 		menuBar.add(mnWindow);
 		
-				// Pobriši
-		btnDelete = new JButton("Zbriši pogovor");
-		btnDelete.setAlignmentX(Component.CENTER_ALIGNMENT);
-		btnDelete.addActionListener(this);
-		
+				// Barva okna
 		mnWindowColor = new JMenu("Barva");
 		mnWindow.add(mnWindowColor);
 		
@@ -283,10 +280,14 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		wdYellow.addActionListener(this);
 		wdYellow.setBackground(new Color(255,255,153));
 		mnWindowColor.add(wdYellow);
-		
-		
+
+				// Pobriši
+		btnDelete = new JButton("Zbriši pogovor");
+		btnDelete.setAlignmentX(Component.CENTER_ALIGNMENT);
+		btnDelete.addActionListener(this);
 		btnDelete.setToolTipText("Pobriše dosedanji pogovor");
 		mnWindow.add(btnDelete);
+		
 		
 		// Javno
 		global = new JRadioButton("Javno");
@@ -297,38 +298,45 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		global.setToolTipText("Javno ali zasebno sporočilo?");
 	}
 	
-	public String getSignedInUsers() throws ClientProtocolException, IOException {			// TODO vsako sekundo
+	
+	public void getSignedInUsers() throws ClientProtocolException, IOException {
 		List<User> users = App.getUsers();
 		this.signedInUsers = "";
 		for (User user : users) {
 			this.signedInUsers += user.getUsername() + "\n";
 		}
 		this.txt_signedInUsers.setText(this.signedInUsers);
-		return signedInUsers;
 	}
 	
-	private Boolean signedIn(String user) {
-		if (this.signedInUsers.length() == 0) {
-			return false;
-		} else {
-			return this.signedInUsers.contains(user);
-		}
+	private Boolean signedIn(String user) throws ClientProtocolException, IOException { 
+		getSignedInUsers();
+		return this.signedInUsers.contains(user); 
 	}
 
 
-	public void addSentMessage(String person, String message) throws ClientProtocolException, IOException, URISyntaxException {
+	private void addSentMessage(String person, String message) throws ClientProtocolException, IOException, URISyntaxException {
 		String chat = this.output.getText();
-		this.output.setText(chat + person + ": " + message + "\n") ;
+		String sendingTo = new String();
+		if (this.global.isSelected()) {
+			sendingTo = "(Javno)";
+		} else {
+			sendingTo = "(" + this.recipient + ")";
+		}
+		this.output.setText(chat + person + ": " + message + " " + sendingTo + "\n") ;
 		App.sendMessage(global.isSelected(), person, this.recipient, message);
 	}
 	
-	public void addRecievedMessage() throws ClientProtocolException, URISyntaxException, IOException {			// TODO vsako sekundo 
+	public void addRecievedMessage() throws ClientProtocolException, URISyntaxException, IOException {
 		if (signedIn(this.nickname)) {
 			List<Message> newMessages = App.recieveMessages(this.nickname);
 			if (! newMessages.isEmpty()) {
 				String chat = this.output.getText();
 				for (Message message : newMessages) {
-					this.output.setText(chat + message.getSender() + ": " + message.getText() + "\n");
+					if (message.getGlobal()) {
+						this.output.setText(chat + message.getSender() + ": " + message.getText() + "(Javno)" + "\n");
+					} else {
+						this.output.setText(chat + message.getSender() + ": " + message.getText() + "\n");
+					}
 				}
 			}
 		}
@@ -336,32 +344,42 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
-		if (source == this.btnSignIn) {
-			if (!signedIn(nickname));	
-				try {
-					App.logIn(nickname);
-					getSignedInUsers(); // ko bo vsako sekundo loh dam tle vn?
-				} catch (ClientProtocolException e1) {
-					e1.printStackTrace();
-				} catch (URISyntaxException e1) {
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-		} if (source == this.btnSignOut) {
-			if (signedIn(nickname));	
-				try {
-					App.logOut(nickname);
-					getSignedInUsers(); // ko bo vsako sekundo loh dam tle vn?
-				} catch (ClientProtocolException e1) {
-					e1.printStackTrace();
-				} catch (URISyntaxException e1) {
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
+		if (source == this.btnSignIn | source == this.btnSignOut) {
+			Boolean userSignedIn = new Boolean(false);
+			try {
+				userSignedIn = signedIn(nickname);
+			} catch (ClientProtocolException e2) {
+				e2.printStackTrace();
+			} catch (IOException e2) {
+				e2.printStackTrace();
+			}
+		
+			if (source == this.btnSignIn) {
+				if (!userSignedIn);	
+					try {
+						App.logIn(nickname);
+					} catch (ClientProtocolException e1) {
+						e1.printStackTrace();
+					} catch (URISyntaxException e1) {
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+			} else {
+				if (userSignedIn);
+					try {
+						App.logOut(nickname);
+					} catch (ClientProtocolException e1) {
+						e1.printStackTrace();
+					} catch (URISyntaxException e1) {
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+			}
 		} if (source == this.btnDelete) {
 			this.output.setText("");
+			MenuSelectionManager.defaultManager().clearSelectedPath();
 		} if (source == this.global) {
 			if (! this.global.isSelected()) {
 				if (this.recipient.length() == 0) {
@@ -372,7 +390,12 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 				} else {
 					this.input.setEditable(true);
 					this.input.setText("");
+					this.input.requestFocus();
 				}
+			} else {
+				this.input.setEditable(true);
+				this.input.setText("");
+				this.input.requestFocus();
 			}
 		} 
 		
@@ -419,6 +442,22 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 
 		
 		if (source == this.btnTest) {
+			
+			try {
+				App.logIn("Test");
+				App.sendMessage(true, "Test", "Ursa", "Pa da vidmo");
+				App.sendMessage(false, "Test", "Ursa", "Pa da vidmo zasebno");
+			} catch (ClientProtocolException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (URISyntaxException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			
 		}
 			
 		
@@ -428,7 +467,18 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		Object source = e.getSource();
 		if (source == this.txt_nickname) {
 			if (e.getKeyChar() == '\n') {
+				this.previousNickname = this.nickname;
 				this.nickname = this.txt_nickname.getText();
+				try {
+					App.logOut(this.previousNickname);
+					App.logIn(this.nickname);
+				} catch (ClientProtocolException e1) {
+					e1.printStackTrace();
+				} catch (URISyntaxException e1) {
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 				MenuSelectionManager.defaultManager().clearSelectedPath();
 				this.input.requestFocus();
 			}
@@ -459,6 +509,22 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	public void keyPressed(KeyEvent e) { }
 
 	public void keyReleased(KeyEvent e) { }
+	
+	@Override
+	public void dispose() {
+	    try {
+	    	if (signedIn(this.nickname)) {
+	    		App.logOut(this.nickname);
+	    	}
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	    super.dispose();
+	}
 
 	
 
