@@ -1,6 +1,7 @@
 package si.zrimsek.chitchat;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import org.apache.http.client.ClientProtocolException;
 
@@ -13,9 +14,14 @@ public class ChitChat {
 		chatFrame.pack();
 		chatFrame.setVisible(true);
 		chatFrame.getSignedInUsers();
-
-		
+		try {
+			App.logIn(System.getProperty("user.name"));
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 			
 	}
+	
+
 
 }

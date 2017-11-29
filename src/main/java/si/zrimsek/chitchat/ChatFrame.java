@@ -125,6 +125,27 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		    }
 		});
 		
+		addWindowListener(new WindowAdapter() {
+		    public void windowClosing( WindowEvent e ) {
+		    	try {
+					if (signedIn(nickname)) {
+						App.logOut(nickname);;
+					}
+				} catch (ClientProtocolException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (URISyntaxException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+		    }
+		});
+		
+		
+		
 		
 		// Vpisani uporabniki
 				// Napis
@@ -358,6 +379,8 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 				if (!userSignedIn);	
 					try {
 						App.logIn(nickname);
+						this.input.setEditable(true);
+						this.input.setText("");
 					} catch (ClientProtocolException e1) {
 						e1.printStackTrace();
 					} catch (URISyntaxException e1) {
@@ -369,6 +392,8 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 				if (userSignedIn);
 					try {
 						App.logOut(nickname);
+						this.input.setEditable(false);
+						this.input.setText("Za pošiljanje sporočil se morate prijaviti!");
 					} catch (ClientProtocolException e1) {
 						e1.printStackTrace();
 					} catch (URISyntaxException e1) {
@@ -480,6 +505,8 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 					e1.printStackTrace();
 				}
 				MenuSelectionManager.defaultManager().clearSelectedPath();
+				this.input.setEditable(true);
+				this.input.setText("");
 				this.input.requestFocus();
 			}
 		} if (source == this.txt_recipient) {
@@ -509,22 +536,9 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	public void keyPressed(KeyEvent e) { }
 
 	public void keyReleased(KeyEvent e) { }
-	
-	@Override
-	public void dispose() {
-	    try {
-	    	if (signedIn(this.nickname)) {
-	    		App.logOut(this.nickname);
-	    	}
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	    super.dispose();
-	}
+
+
+
 
 	
 
