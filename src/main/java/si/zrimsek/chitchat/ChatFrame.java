@@ -20,10 +20,8 @@ import javax.swing.MenuSelectionManager;
 import javax.swing.JMenuBar;
 import javax.swing.JRadioButton;
 import java.awt.Insets;
-import javax.swing.JComboBox;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JMenu;
 import javax.swing.JButton;
 import javax.swing.JScrollPane;
@@ -34,6 +32,10 @@ import org.apache.http.client.ClientProtocolException;
 
 import java.awt.Color;
 import java.awt.SystemColor;
+import java.awt.Cursor;
+import javax.swing.border.LineBorder;
+import java.awt.Component;
+import javax.swing.JMenuItem;
 
 public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	
@@ -44,7 +46,6 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	private String signedInUsers;
 	private JTextArea txt_signedInUsers;
 	private JTextField txt_recipient;
-	private JComboBox<String> windowColor;
 	private JRadioButton global;
 	private JTextField txt_nickname;
 	private JMenu mnWindow;
@@ -52,6 +53,19 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	private JButton btnSignOut;
 	private JButton btnDelete;
 	private JButton btnTest;
+	private JMenu mnFontColor;
+	private JMenuItem green;
+	private JMenuItem blue;
+	private JMenu mnfontSize;
+	private JMenuItem size12;
+	private JMenuItem size10;
+	private JMenu mnWindowColor;
+	private JMenuItem wdGreen;
+	private JMenuItem wdBlue;
+	private JMenuItem wdWhite;
+	private JMenuItem wdOrange;
+	private JMenuItem black;
+	
 
 	public ChatFrame() {
 		super();
@@ -60,13 +74,15 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		gridBagLayout.rowWeights = new double[]{0.0, 0.0, 1.0, 0.0};
 		gridBagLayout.columnWeights = new double[]{1.0, 0.0, 0.0};
 		pane.setLayout(gridBagLayout);
+	//	pane.setBackground(Color.BLACK);
 		
 		this.setTitle("ChitChat");
-		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE); 
+		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
+		
 		this.nickname = System.getProperty("user.name");
 		this.signedInUsers = new String();
-		this.recipient = new String("");
+		this.recipient = new String();
 		
 		// POGOVOR
 		// Output
@@ -76,7 +92,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		GridBagConstraints outputConstraint = new GridBagConstraints();
 		outputConstraint.gridwidth = 2;
 		outputConstraint.gridheight = 3;
-		outputConstraint.insets = new Insets(0, 0, 5, 5);
+		outputConstraint.insets = new Insets(5, 5, 0, 5);
 		outputConstraint.weighty = 1.0;
 		outputConstraint.weightx = 3.0;
 		outputConstraint.fill = GridBagConstraints.BOTH;
@@ -90,7 +106,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		input.addActionListener(this);
 		input.addKeyListener(this);
 		GridBagConstraints inputConstraint = new GridBagConstraints();
-		inputConstraint.insets = new Insets(0, 0, 0, 5);
+		inputConstraint.insets = new Insets(5, 5, 5, 5);
 		inputConstraint.gridwidth = 2;
 		inputConstraint.fill = GridBagConstraints.HORIZONTAL;
 		inputConstraint.gridx = 0;
@@ -115,7 +131,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		txtSignedIn.setText("Prijavljeni:");
 		GridBagConstraints gbc_txtSignedIn = new GridBagConstraints();
 		gbc_txtSignedIn.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtSignedIn.insets = new Insets(0, 0, 5, 5);
+		gbc_txtSignedIn.insets = new Insets(5, 5, 5, 5);
 		gbc_txtSignedIn.gridx = 2;
 		gbc_txtSignedIn.gridy = 0;
 		getContentPane().add(txtSignedIn, gbc_txtSignedIn);
@@ -123,9 +139,12 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		
 				// Seznam
 		txt_signedInUsers = new JTextArea(0, 10);
+		txt_signedInUsers.setToolTipText("Prijavljeni uporabniki");
+		txt_signedInUsers.setForeground(new Color(0, 128, 0));
+		txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 10));
+		txt_signedInUsers.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		txt_signedInUsers.setBackground(SystemColor.menu);
 		txt_signedInUsers.setEditable(false);
-		txt_signedInUsers.setText(signedInUsers);
 		JScrollPane siuScroll = new JScrollPane(txt_signedInUsers);
 		siuScroll.setViewportBorder(new BevelBorder(BevelBorder.LOWERED, Color.DARK_GRAY, Color.LIGHT_GRAY, null, null));
 		GridBagConstraints usersConstraints = new GridBagConstraints();
@@ -143,13 +162,14 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		
 		// Prejemnik
 		txt_recipient = new JTextField("Prejemnik");
+		txt_recipient.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		txt_recipient.addActionListener(this);
 		txt_recipient.addKeyListener(this);
 		GridBagConstraints recipientConstraints = new GridBagConstraints();
 		recipientConstraints.gridheight = 1;
 		recipientConstraints.weightx = 1.0;
-		recipientConstraints.fill = GridBagConstraints.BOTH;
-		recipientConstraints.insets = new Insets(0, 0, 0, 5);
+		recipientConstraints.fill = GridBagConstraints.HORIZONTAL;
+		recipientConstraints.insets = new Insets(0, 0, 5, 5);
 		recipientConstraints.gridx = 2;
 		recipientConstraints.gridy = 3;
 		txt_recipient.setHorizontalAlignment(SwingConstants.LEFT);
@@ -169,6 +189,17 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		
 		btnSignIn = new JButton("Prijava");
 		btnSignIn.addActionListener(this);
+		
+		
+				// Vzdevek
+		txt_nickname = new JTextField();
+		txt_nickname.setBorder(new LineBorder(new Color(153, 51, 0)));
+		mnSignInOut.add(txt_nickname);
+		txt_nickname.addActionListener(this);
+		txt_nickname.addKeyListener(this);
+		txt_nickname.setHorizontalAlignment(SwingConstants.LEFT);
+		txt_nickname.setToolTipText("Izberite si svoj vzdevek");
+		txt_nickname.setText(this.nickname); // a je to treba?
 		mnSignInOut.add(btnSignIn);
 		
 		btnSignOut = new JButton("Odjava");
@@ -179,43 +210,50 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		JMenu mnFont = new JMenu("Pisava");
 		menuBar.add(mnFont);
 		
-		JComboBox<String> fontColor = new JComboBox<String>();
-		fontColor.addActionListener(this);
-		mnFont.add(fontColor);
-		fontColor.setModel(new DefaultComboBoxModel<String>(new String[] {"Rdeča", "Rumena", "Modra", "Zelena"}));
-		fontColor.setToolTipText("Barva pisave");
+		mnFontColor = new JMenu("Barva");
+		mnFont.add(mnFontColor);
 		
-		JComboBox<Integer> fontSize = new JComboBox<Integer>();
-		fontSize.addActionListener(this);
-		mnFont.add(fontSize);
-		fontSize.setModel(new DefaultComboBoxModel<Integer>(new Integer[] {10, 12, 14, 16}));
-		fontSize.setToolTipText("Velikost pisave");
+		black = new JMenuItem("Črna");
+		mnFontColor.add(black);
+		
+		green = new JMenuItem("Zelena");
+		mnFontColor.add(green);
+		
+		blue = new JMenuItem("Modra");
+		mnFontColor.add(blue);
+		
+		mnfontSize = new JMenu("Velikost");
+		mnFont.add(mnfontSize);
+		
+		size10 = new JMenuItem("10");
+		mnfontSize.add(size10);
+		
+		size12 = new JMenuItem("12");
+		mnfontSize.add(size12);
 		
 		// Okno
-		mnWindow = new JMenu("Več");
+		mnWindow = new JMenu("Okno");
 		menuBar.add(mnWindow);
-		
-		
-				// Vzdevek
-		txt_nickname = new JTextField();
-		txt_nickname.addActionListener(this);
-		txt_nickname.addKeyListener(this);
-		mnWindow.add(txt_nickname);
-		txt_nickname.setHorizontalAlignment(SwingConstants.LEFT);
-		txt_nickname.setToolTipText("Izberite si svoj vzdevek");
-		txt_nickname.setText(this.nickname); // a je to treba?
-		
-				// Barva okna
-		windowColor = new JComboBox<String>();
-		windowColor.addActionListener(this);
-		windowColor.setModel(new DefaultComboBoxModel<String>(new String[] {"Modra", "Rumena", "Zelena"}));
-		windowColor.setToolTipText("Nastavite barvo okna");
-		mnWindow.add(windowColor);
 		
 				// Pobriši
 		btnDelete = new JButton("Zbriši pogovor");
+		btnDelete.setAlignmentX(Component.CENTER_ALIGNMENT);
 		btnDelete.addActionListener(this);
-		btnDelete.setAlignmentX(1.0f);
+		
+		mnWindowColor = new JMenu("Barva");
+		mnWindow.add(mnWindowColor);
+		
+		wdWhite = new JMenuItem("Bela");
+		mnWindowColor.add(wdWhite);
+		
+		wdGreen = new JMenuItem("Zelena");
+		mnWindowColor.add(wdGreen);
+		
+		wdBlue = new JMenuItem("Modra");
+		mnWindowColor.add(wdBlue);
+		
+		wdOrange = new JMenuItem("Oranžna");
+		mnWindowColor.add(wdOrange);
 		btnDelete.setToolTipText("Pobriše dosedanji pogovor");
 		mnWindow.add(btnDelete);
 		
@@ -249,7 +287,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 
 	public void addSentMessage(String person, String message) throws ClientProtocolException, IOException, URISyntaxException {
 		String chat = this.output.getText();
-		this.output.setText(chat + person + ": " + message + "\n");
+		this.output.setText(chat + person + ": " + message + "\n") ;
 		App.sendMessage(global.isSelected(), person, this.recipient, message);
 	}
 	
@@ -305,19 +343,9 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 					this.input.setText("");
 				}
 			}
-		} if (source == this.btnTest) {
-			try {
-				addRecievedMessage();
-			} catch (ClientProtocolException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (URISyntaxException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+		} 
+		
+		if (source == this.btnTest) {
 		}
 			
 		
@@ -358,7 +386,9 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	public void keyPressed(KeyEvent e) { }
 
 	public void keyReleased(KeyEvent e) { }
+
 	
+
 	
 //	private static void addPopup(Component component, final JPopupMenu popup) {
 //		component.addMouseListener(new MouseAdapter() {

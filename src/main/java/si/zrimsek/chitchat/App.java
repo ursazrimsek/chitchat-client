@@ -94,7 +94,7 @@ public class App {
 		mapper.setDateFormat(new ISO8601DateFormat());
 		TypeReference<List<Message>> t = new TypeReference<List<Message>>() { };
 		List<Message> messages = mapper.readValue(received, t);
-		System.out.println(messages);
+		
 		return messages;
     }
     
