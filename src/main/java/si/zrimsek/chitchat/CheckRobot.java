@@ -21,7 +21,7 @@ public class CheckRobot extends TimerTask {
 	 */
 	public void activate() {
 		Timer timer = new Timer();
-		timer.scheduleAtFixedRate(this, 500, 500);
+		timer.scheduleAtFixedRate(this, 0, 500);
 	}
 	
 	@Override

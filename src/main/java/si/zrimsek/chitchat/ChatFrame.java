@@ -80,11 +80,11 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		
 		this.setTitle("ChitChat");
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
 		
 		this.nickname = System.getProperty("user.name");
 		this.signedInUsers = new String();
 		this.recipient = new String();
+		
 		
 		// POGOVOR
 		// Output
@@ -153,9 +153,6 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		usersConstraints.gridy = 1;
 		pane.add(siuScroll, usersConstraints);
 		
-//		btnTest = new JButton("TEST");
-//		btnTest.addActionListener(this);
-//		siuScroll.setRowHeaderView(btnTest);
 		
 		// Prejemnik
 		txt_recipient = new JTextField("Prejemnik");
@@ -289,13 +286,12 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		global.setToolTipText("Javno ali zasebno sporočilo?");
 	
 
-		
 		// Ko se okno odpre
 		addWindowListener(new WindowAdapter() {
 		    public void windowOpened( WindowEvent e1 ){
 		        try {
-					Boolean succsess = App.logIn(nickname);
-			        if (succsess) {
+					Boolean success = App.logIn(nickname);
+			        if (success) {
 						input.requestFocus();
 			        } else {
 			        	input.setEditable(false);
@@ -332,6 +328,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	
 	}
 	
+	// Posodobi vpisane uporabnike
 	public void getSignedInUsers() throws ClientProtocolException, IOException {
 		List<User> users = App.getUsers();
 		this.signedInUsers = "";
@@ -340,6 +337,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		}
 		this.txt_signedInUsers.setText(this.signedInUsers);
 	}
+	
 	
 	private Boolean signedIn(String person) throws ClientProtocolException, IOException { 
 		List<User> users = App.getUsers();

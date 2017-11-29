@@ -28,7 +28,7 @@ public class App {
         logIn("Toto");
 //        getUsers();
         sendMessage(true, "Toto", "", "halohalo!");
-//        sendMessage(false, "vsiljivec", "Toto", "Vse najboljse za 13. rojstni dan!");
+        sendMessage(false, "zamudnik", "Toto", "Vse najboljse za 13. rojstni dan!");
 //        sendMessage(true, "Ursa", "....", "dkflw!");
 //        recieveMessages("Toto");
     }
@@ -57,7 +57,6 @@ public class App {
 	    	return true;
 	    }
 	    catch (Exception HttpResponseException) {
-	    	System.out.println("User already exists");
 	    	return false;
 	    }
     }
