@@ -27,10 +27,10 @@ public class App {
         logIn("Ursa");
         logIn("Toto");
 //        getUsers();
-  //      sendMessage(false, "Ursa", "Toto", "Vse najboljse za 13. rojstni dan!");
+        sendMessage(true, "Toto", "", "halohalo!");
 //        sendMessage(false, "vsiljivec", "Toto", "Vse najboljse za 13. rojstni dan!");
 //        sendMessage(true, "Ursa", "....", "dkflw!");
-        recieveMessages("Toto");
+//        recieveMessages("Toto");
     }
     
     
@@ -48,15 +48,17 @@ public class App {
     }
     
     
-    public static void logIn(String user) throws URISyntaxException, ClientProtocolException, IOException {
+    public static Boolean logIn(String user) throws URISyntaxException, ClientProtocolException, IOException {
 	    try {	
     		URI uri = new URIBuilder("http://chitchat.andrej.com/users")
 	    				.addParameter("username", user)
 	    				.build();
 	    	Request.Post(uri).execute().returnContent().asString();
+	    	return true;
 	    }
 	    catch (Exception HttpResponseException) {
 	    	System.out.println("User already exists");
+	    	return false;
 	    }
     }
     

@@ -32,7 +32,6 @@ import org.apache.http.client.ClientProtocolException;
 
 import java.awt.Color;
 import java.awt.SystemColor;
-import java.awt.Window;
 import java.awt.Cursor;
 import javax.swing.border.LineBorder;
 import java.awt.Component;
@@ -118,35 +117,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		inputConstraint.gridy = 3;
 		pane.add(input, inputConstraint);
 		
-		
-		addWindowListener(new WindowAdapter() {
-		    public void windowOpened( WindowEvent e ){
-		        input.requestFocus();
-		    }
-		});
-		
-		addWindowListener(new WindowAdapter() {
-		    public void windowClosing( WindowEvent e ) {
-		    	try {
-					if (signedIn(nickname)) {
-						App.logOut(nickname);;
-					}
-				} catch (ClientProtocolException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (URISyntaxException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-		    }
-		});
-		
-		
-		
-		
+			
 		// Vpisani uporabniki
 				// Napis
 		JTextField txtSignedIn = new JTextField();
@@ -182,9 +153,9 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		usersConstraints.gridy = 1;
 		pane.add(siuScroll, usersConstraints);
 		
-		btnTest = new JButton("TEST");
-		btnTest.addActionListener(this);
-		siuScroll.setRowHeaderView(btnTest);
+//		btnTest = new JButton("TEST");
+//		btnTest.addActionListener(this);
+//		siuScroll.setRowHeaderView(btnTest);
 		
 		// Prejemnik
 		txt_recipient = new JTextField("Prejemnik");
@@ -202,7 +173,6 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		txt_recipient.setHorizontalAlignment(SwingConstants.LEFT);
 		txt_recipient.setToolTipText("Vnesite prejemnika");
 		pane.add(txt_recipient, recipientConstraints);
-		
 		
 		
 		// MENIJI
@@ -317,8 +287,50 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		global.setSelected(true);
 		menuBar.add(global);
 		global.setToolTipText("Javno ali zasebno sporočilo?");
-	}
 	
+
+		
+		// Ko se okno odpre
+		addWindowListener(new WindowAdapter() {
+		    public void windowOpened( WindowEvent e1 ){
+		        try {
+					Boolean succsess = App.logIn(nickname);
+			        if (succsess) {
+						input.requestFocus();
+			        } else {
+			        	input.setEditable(false);
+						input.setText("Izberite si vzdevek!");
+						txt_nickname.setText("");
+						txt_nickname.requestFocus();
+						nickname = "";
+			        }
+				} catch (URISyntaxException e) {
+					e.printStackTrace();
+				} catch (ClientProtocolException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		    }
+		});
+		// Ko se okno zapre
+		addWindowListener(new WindowAdapter() {
+		    public void windowClosing( WindowEvent e ) {
+		    	try {
+					if (signedIn(nickname)) {
+						App.logOut(nickname);;
+					}
+				} catch (ClientProtocolException e1) {
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				} catch (URISyntaxException e1) {
+					e1.printStackTrace();
+				}
+		    }
+		});
+	
+	}
 	
 	public void getSignedInUsers() throws ClientProtocolException, IOException {
 		List<User> users = App.getUsers();
@@ -329,11 +341,15 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		this.txt_signedInUsers.setText(this.signedInUsers);
 	}
 	
-	private Boolean signedIn(String user) throws ClientProtocolException, IOException { 
-		getSignedInUsers();
-		return this.signedInUsers.contains(user); 
+	private Boolean signedIn(String person) throws ClientProtocolException, IOException { 
+		List<User> users = App.getUsers();
+		for (User user : users) {
+			if (user.getUsername().equals(person)) {
+				return true;
+			} 
+		}
+		return false;
 	}
-
 
 	private void addSentMessage(String person, String message) throws ClientProtocolException, IOException, URISyntaxException {
 		String chat = this.output.getText();
@@ -348,23 +364,28 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	}
 	
 	public void addRecievedMessage() throws ClientProtocolException, URISyntaxException, IOException {
-		if (signedIn(this.nickname)) {
-			List<Message> newMessages = App.recieveMessages(this.nickname);
-			if (! newMessages.isEmpty()) {
-				String chat = this.output.getText();
-				for (Message message : newMessages) {
-					if (message.getGlobal()) {
-						this.output.setText(chat + message.getSender() + ": " + message.getText() + "(Javno)" + "\n");
-					} else {
-						this.output.setText(chat + message.getSender() + ": " + message.getText() + "\n");
+		try {	
+			if (signedIn(this.nickname)) {
+				List<Message> newMessages = App.recieveMessages(this.nickname);
+				if (! newMessages.isEmpty()) {
+					String chat = this.output.getText();
+					for (Message message : newMessages) {
+						if (message.getGlobal()) {
+							this.output.setText(chat + message.getSender() + ": " + message.getText() + " (Javno)" + "\n");
+						} else {
+							this.output.setText(chat + message.getSender() + ": " + message.getText() + "\n");
+						}
 					}
 				}
 			}
+		} catch (Exception HttpResponseException) {
+			System.out.println("HTTP" + this.nickname);
 		}
 	}
 	
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
+		// Gumb za prijavo ali odjavo
 		if (source == this.btnSignIn | source == this.btnSignOut) {
 			Boolean userSignedIn = new Boolean(false);
 			try {
@@ -402,6 +423,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 						e1.printStackTrace();
 					}
 			}
+		// Gumb za izbris pogovora
 		} if (source == this.btnDelete) {
 			this.output.setText("");
 			MenuSelectionManager.defaultManager().clearSelectedPath();
@@ -424,6 +446,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 			}
 		} 
 		
+		// Meni za izbiro barve okna
 		if (source == this.wdWhite) {
 			this.output.setBackground(new Color(255,255,255));
 			txt_signedInUsers.setBackground(SystemColor.menu);
@@ -438,14 +461,15 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 			this.output.setBackground(new Color(255,255,153));
 			this.txt_signedInUsers.setBackground(new Color(255,228,181));
 		} 
-		
+		// Meni za izbiro barve fonta
 		if (source == this.ftBlack) {
 			this.output.setForeground(new Color(0,0,0));
 		} if (source == this.ftBlue) {
 			this.output.setForeground(new Color(0,0,205));
 		} if (source == this.ftGreen) {
 			this.output.setForeground(new Color(0,100,0));
-		} 
+		}  
+		// Meni za izbiro velikosti fonta
 		if (source == this.ftSize10) {
 			this.output.setFont(new Font("Monospaced", Font.BOLD, 10));
 			this.txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 10));
@@ -490,25 +514,44 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 
 	public void keyTyped(KeyEvent e) {
 		Object source = e.getSource();
+		// Vnos vzdevka
 		if (source == this.txt_nickname) {
 			if (e.getKeyChar() == '\n') {
-				this.previousNickname = this.nickname;
-				this.nickname = this.txt_nickname.getText();
-				try {
-					App.logOut(this.previousNickname);
-					App.logIn(this.nickname);
-				} catch (ClientProtocolException e1) {
-					e1.printStackTrace();
-				} catch (URISyntaxException e1) {
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				MenuSelectionManager.defaultManager().clearSelectedPath();
-				this.input.setEditable(true);
-				this.input.setText("");
-				this.input.requestFocus();
+				if (! this.txt_nickname.getText().equals(this.nickname)) {
+					Boolean in = new Boolean(true);
+					try { 
+						in = signedIn(this.txt_nickname.getText());
+					} catch (ClientProtocolException e1) {
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+					if (in) {
+						this.input.setText("Izberite si drugo ime, to že obstaja!");
+						this.input.setEditable(false);
+					} else {
+						this.previousNickname = this.nickname;
+						this.nickname = this.txt_nickname.getText();
+						MenuSelectionManager.defaultManager().clearSelectedPath();
+						this.input.setEditable(true);
+						this.input.setText("");
+						this.input.requestFocus();
+						try {
+							if (signedIn(this.previousNickname)) { 
+								App.logOut(this.previousNickname);
+							}
+							App.logIn(this.nickname);
+						} catch (ClientProtocolException e1) {
+							e1.printStackTrace();
+						} catch (URISyntaxException e1) {
+							e1.printStackTrace();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					}
+					}
 			}
+		// Vnos prejemnika
 		} if (source == this.txt_recipient) {
 			if (e.getKeyChar() == '\n') {
 				this.recipient = this.txt_recipient.getText();
@@ -517,6 +560,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 				this.input.requestFocus();
 				this.input.setText("");
 				}
+		// Vnos besedila
 		} if (source == this.input) {
 			if (e.getKeyChar() == '\n') {
 				try {
@@ -538,26 +582,4 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	public void keyReleased(KeyEvent e) { }
 
 
-
-
-	
-
-	
-//	private static void addPopup(Component component, final JPopupMenu popup) {
-//		component.addMouseListener(new MouseAdapter() {
-//			public void mousePressed(MouseEvent e) {
-//				if (e.isPopupTrigger()) {
-//					showMenu(e);
-//				}
-//			}
-//			public void mouseReleased(MouseEvent e) {
-//				if (e.isPopupTrigger()) {
-//					showMenu(e);
-//				}
-//			}
-//			private void showMenu(MouseEvent e) {
-//				popup.show(e.getComponent(), e.getX(), e.getY());
-//			}
-//		});
-//	}
   }
