@@ -37,6 +37,7 @@ import javax.swing.border.LineBorder;
 import java.awt.Component;
 import javax.swing.JMenuItem;
 
+@SuppressWarnings("serial")
 public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	
 	private JTextArea output;
@@ -54,19 +55,20 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	private JButton btnDelete;
 	private JButton btnTest;
 	private JMenu mnFontColor;
-	private JMenuItem green;
-	private JMenuItem blue;
+	private JMenuItem ftBlack;
+	private JMenuItem ftGreen;
+	private JMenuItem ftBlue;
 	private JMenu mnfontSize;
-	private JMenuItem size12;
-	private JMenuItem size10;
+	private JMenuItem ftSize12;
+	private JMenuItem ftSize10;
+	private JMenuItem ftSize14;
 	private JMenu mnWindowColor;
 	private JMenuItem wdGreen;
 	private JMenuItem wdBlue;
 	private JMenuItem wdWhite;
-	private JMenuItem wdOrange;
-	private JMenuItem black;
+	private JMenuItem wdYellow;
 	
-
+	
 	public ChatFrame() {
 		super();
 		Container pane = this.getContentPane();
@@ -87,6 +89,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		// POGOVOR
 		// Output
 		this.output = new JTextArea(20, 40);
+		output.setFont(new Font("Monospaced", Font.BOLD, 12));
 		this.output.setEditable(false);
 		JScrollPane scrollPane = new JScrollPane(output);
 		GridBagConstraints outputConstraint = new GridBagConstraints();
@@ -102,6 +105,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		
 		// Input
 		this.input = new JTextField(40);
+		input.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		input.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		input.addActionListener(this);
 		input.addKeyListener(this);
@@ -126,7 +130,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		JTextField txtSignedIn = new JTextField();
 		txtSignedIn.setBorder(null);
 		txtSignedIn.setHorizontalAlignment(SwingConstants.LEFT);
-		txtSignedIn.setFont(new Font("Arial Black", Font.PLAIN, 11));
+		txtSignedIn.setFont(new Font("Arial Black", Font.PLAIN, 13));
 		txtSignedIn.setEditable(false);
 		txtSignedIn.setText("Prijavljeni:");
 		GridBagConstraints gbc_txtSignedIn = new GridBagConstraints();
@@ -141,7 +145,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		txt_signedInUsers = new JTextArea(0, 10);
 		txt_signedInUsers.setToolTipText("Prijavljeni uporabniki");
 		txt_signedInUsers.setForeground(new Color(0, 128, 0));
-		txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 10));
+		txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 12));
 		txt_signedInUsers.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		txt_signedInUsers.setBackground(SystemColor.menu);
 		txt_signedInUsers.setEditable(false);
@@ -162,6 +166,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		
 		// Prejemnik
 		txt_recipient = new JTextField("Prejemnik");
+		txt_recipient.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 12));
 		txt_recipient.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		txt_recipient.addActionListener(this);
 		txt_recipient.addKeyListener(this);
@@ -210,26 +215,42 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		JMenu mnFont = new JMenu("Pisava");
 		menuBar.add(mnFont);
 		
+				// Barve
 		mnFontColor = new JMenu("Barva");
 		mnFont.add(mnFontColor);
 		
-		black = new JMenuItem("Črna");
-		mnFontColor.add(black);
+		ftBlack = new JMenuItem("Črna");
+		ftBlack.addActionListener(this);
+		ftBlack.setForeground(new Color(0,0,0));
+		mnFontColor.add(ftBlack);
 		
-		green = new JMenuItem("Zelena");
-		mnFontColor.add(green);
+		ftGreen = new JMenuItem("Zelena");
+		ftGreen.addActionListener(this);
+		ftGreen.setForeground(new Color(0,100,0));
+		mnFontColor.add(ftGreen);
 		
-		blue = new JMenuItem("Modra");
-		mnFontColor.add(blue);
+		ftBlue = new JMenuItem("Modra");
+		ftBlue.addActionListener(this);
+		ftBlue.setForeground(new Color(0,0,205));
+		mnFontColor.add(ftBlue);
 		
+				// Velikosti
 		mnfontSize = new JMenu("Velikost");
 		mnFont.add(mnfontSize);
 		
-		size10 = new JMenuItem("10");
-		mnfontSize.add(size10);
+
+		ftSize10 = new JMenuItem("10");
+		ftSize10.addActionListener(this);
+		mnfontSize.add(ftSize10);
 		
-		size12 = new JMenuItem("12");
-		mnfontSize.add(size12);
+		ftSize12 = new JMenuItem("12");
+		ftSize12.addActionListener(this);
+		mnfontSize.add(ftSize12);
+		
+		ftSize14 = new JMenuItem("14");
+		ftSize14.addActionListener(this);
+		mnfontSize.add(ftSize14);
+		
 		
 		// Okno
 		mnWindow = new JMenu("Okno");
@@ -244,16 +265,26 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		mnWindow.add(mnWindowColor);
 		
 		wdWhite = new JMenuItem("Bela");
+		wdWhite.addActionListener(this);
+		wdWhite.setBackground(new Color(255,255,255));
 		mnWindowColor.add(wdWhite);
 		
 		wdGreen = new JMenuItem("Zelena");
+		wdGreen.addActionListener(this);
+		wdGreen.setBackground(new Color(152,251,152));
 		mnWindowColor.add(wdGreen);
 		
 		wdBlue = new JMenuItem("Modra");
+		wdBlue.addActionListener(this);
+		wdBlue.setBackground(new Color(176,224,230));
 		mnWindowColor.add(wdBlue);
 		
-		wdOrange = new JMenuItem("Oranžna");
-		mnWindowColor.add(wdOrange);
+		wdYellow = new JMenuItem("Rumena");
+		wdYellow.addActionListener(this);
+		wdYellow.setBackground(new Color(255,255,153));
+		mnWindowColor.add(wdYellow);
+		
+		
 		btnDelete.setToolTipText("Pobriše dosedanji pogovor");
 		mnWindow.add(btnDelete);
 		
@@ -344,6 +375,48 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 				}
 			}
 		} 
+		
+		if (source == this.wdWhite) {
+			this.output.setBackground(new Color(255,255,255));
+			txt_signedInUsers.setBackground(SystemColor.menu);
+		} if (source == this.wdBlue) {	
+		} if (source == this.wdGreen) {
+			this.output.setBackground(new Color(152,251,152));
+			this.txt_signedInUsers.setBackground(new Color(143,188,143));
+		} if (source == this.wdBlue) {
+			this.output.setBackground(new Color(176,224,230));
+			this.txt_signedInUsers.setBackground(new Color(176,196,222));
+		} if (source == this.wdYellow) {
+			this.output.setBackground(new Color(255,255,153));
+			this.txt_signedInUsers.setBackground(new Color(255,228,181));
+		} 
+		
+		if (source == this.ftBlack) {
+			this.output.setForeground(new Color(0,0,0));
+		} if (source == this.ftBlue) {
+			this.output.setForeground(new Color(0,0,205));
+		} if (source == this.ftGreen) {
+			this.output.setForeground(new Color(0,100,0));
+		} 
+		if (source == this.ftSize10) {
+			this.output.setFont(new Font("Monospaced", Font.BOLD, 10));
+			this.txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 10));
+			this.input.setFont(new Font("Tahoma", Font.PLAIN, 10));
+			this.txt_recipient.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 10));
+		} if (source == this.ftSize12) {
+			this.output.setFont(new Font("Monospaced", Font.BOLD, 12));
+			this.txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 12));
+			this.input.setFont(new Font("Tahoma", Font.PLAIN, 12));
+			this.txt_recipient.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 12));
+		} if (source == this.ftSize14) {
+			this.output.setFont(new Font("Monospaced", Font.BOLD, 14));
+			this.txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 14));
+			this.input.setFont(new Font("Tahoma", Font.PLAIN, 14));
+			this.txt_recipient.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
+		}
+
+
+
 		
 		if (source == this.btnTest) {
 		}
