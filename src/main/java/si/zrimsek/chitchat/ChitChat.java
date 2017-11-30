@@ -1,5 +1,6 @@
 package si.zrimsek.chitchat;
 
+import java.awt.Dimension;
 import java.io.IOException;
 import org.apache.http.client.ClientProtocolException;
 
@@ -11,6 +12,7 @@ public class ChitChat {
 		check.activate();
 		chatFrame.pack();
 		chatFrame.setVisible(true);
+		chatFrame.setMinimumSize(new Dimension(275, 200));
 		chatFrame.getSignedInUsers();
 		
 			

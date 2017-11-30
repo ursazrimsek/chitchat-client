@@ -56,7 +56,6 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	private JButton btnSignIn;
 	private JButton btnSignOut;
 	private JButton btnDelete;
-	private JButton btnTest;
 	private JMenu mnFontColor;
 	private JMenuItem ftBlack;
 	private JMenuItem ftGreen;
@@ -83,16 +82,16 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		this.setTitle("ChitChat");
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		
-		this.nickname = System.getProperty("user.name");
-		this.signedInUsers = new String("");
-		this.recipient = new String("");
+		nickname = System.getProperty("user.name");
+		signedInUsers = new String("");
+		recipient = new String("");
 		
 		
 		// POGOVOR
 		// Output
-		this.output = new JTextArea(20, 40);
+		output = new JTextArea(20, 40);
 		output.setFont(new Font("Monospaced", Font.BOLD, 12));
-		this.output.setEditable(false);
+		output.setEditable(false);
 		JScrollPane scrollPane = new JScrollPane(output);
 		GridBagConstraints outputConstraint = new GridBagConstraints();
 		outputConstraint.gridwidth = 2;
@@ -106,7 +105,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		pane.add(scrollPane, outputConstraint);
 		
 		// Input
-		this.input = new JTextField(40);
+		input = new JTextField(40);
 		input.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		input.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		input.addActionListener(this);
@@ -219,7 +218,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		JMenu mnFont = new JMenu("Pisava");
 		menuBar.add(mnFont);
 		
-				// Barve
+				// Barve pisave
 		mnFontColor = new JMenu("Barva");
 		mnFont.add(mnFontColor);
 		
@@ -238,7 +237,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		ftBlue.setForeground(new Color(0,0,205));
 		mnFontColor.add(ftBlue);
 		
-				// Velikosti
+				// Velikosti pisave
 		mnfontSize = new JMenu("Velikost");
 		mnFont.add(mnfontSize);
 		
@@ -342,17 +341,17 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	
 	}
 	
-	// Posodobi vpisane uporabnike
+	// Posodobitev vpisanih uporabnikov
 	public void getSignedInUsers() throws ClientProtocolException, IOException {
 		List<User> users = App.getUsers();
-		this.signedInUsers = "";
+		signedInUsers = "";
 		for (User user : users) {
-			this.signedInUsers += user.getUsername() + "\n";
+			signedInUsers += user.getUsername() + "\n";
 		}
-		this.txt_signedInUsers.setText(this.signedInUsers);
+		txt_signedInUsers.setText(signedInUsers);
 	}
 	
-	
+	// Vpis uporabnika
 	private Boolean signedIn(String person) throws ClientProtocolException, IOException { 
 		List<User> users = App.getUsers();
 		for (User user : users) {
@@ -362,43 +361,81 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		}
 		return false;
 	}
-
+	
+	// Pošiljanje sporočila
 	private void addSentMessage(String person, String message) throws ClientProtocolException, IOException, URISyntaxException {
-		String chat = this.output.getText();
+		String chat = output.getText();
 		String sendingTo = new String();
-		if (this.global.isSelected()) {
+		if (global.isSelected()) {
 			sendingTo = "(Javno pošiljanje)";
 		} else {
-			sendingTo = "(Prejemnik: " + this.recipient + ")";
+			sendingTo = "(Prejemnik: " + recipient + ")";
 		}
-		this.output.setText(chat + person + ": " + message + " " + sendingTo + "\n") ;
-		App.sendMessage(global.isSelected(), person, this.recipient, message);
+		output.setText(chat + person + ": " + message + " " + sendingTo + "\n") ;
+		App.sendMessage(global.isSelected(), person, recipient, message);
 	}
 	
+	// Prejem sporočila
 	public void addRecievedMessage() throws ClientProtocolException, URISyntaxException, IOException {
 		try {	
-			if (signedIn(this.nickname)) {
-				List<Message> newMessages = App.recieveMessages(this.nickname);
+			if (signedIn(nickname)) {
+				List<Message> newMessages = App.recieveMessages(nickname);
 				if (! newMessages.isEmpty()) {
-					String chat = this.output.getText();
+					String chat = output.getText();
 					for (Message message : newMessages) {
 						if (message.getGlobal()) {
-							this.output.setText(chat + message.getSender() + ": " + message.getText() + " (Javno)" + "\n");
+							output.setText(chat + message.getSender() + ": " + message.getText() + " (Javno)" + "\n");
 						} else {
-							this.output.setText(chat + message.getSender() + ": " + message.getText() + "\n");
+							output.setText(chat + message.getSender() + ": " + message.getText() + "\n");
 						}
 					}
 				}
 			}
-		} catch (Exception HttpResponseException) {
-			System.out.println("HTTP" + this.nickname); // TODO zbriš
-		}
+		} catch (Exception HttpResponseException) { }
 	}
 	
+	// Funkcija za zamenjavo vzdevka
+	public void changeNickname() {
+		if (! (txt_nickname.getText().equals(nickname) | txt_nickname.getText().length() == 0)) {
+			Boolean in = new Boolean(true);
+			try { 
+				in = signedIn(txt_nickname.getText());
+			} catch (ClientProtocolException e1) {
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			if (in) {
+				input.setText("Izberite si drugo ime, to že obstaja!");
+				input.setEditable(false);
+			} else {
+				previousNickname = nickname;
+				nickname = txt_nickname.getText();
+				MenuSelectionManager.defaultManager().clearSelectedPath();
+				input.setEditable(true);
+				input.setText("");
+				input.requestFocus();
+				try {
+					if (signedIn(previousNickname)) { 
+						App.logOut(previousNickname);
+					}
+					App.logIn(nickname);
+				} catch (ClientProtocolException e1) {
+					e1.printStackTrace();
+				} catch (URISyntaxException e1) {
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		}
+	}
+
+	// Pritiski na gumbe
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
 		
-		if (source == this.btnSignOut) { // Gumb za odjavo
+		if (source == btnSignOut) { // Gumb za odjavo
 			Boolean userSignedIn = new Boolean(false);
 			try {
 				userSignedIn = signedIn(nickname);
@@ -410,8 +447,9 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 			if (userSignedIn) { 
 				try {
 					App.logOut(nickname);
-					this.input.setEditable(false);
-					this.input.setText("Za pošiljanje sporočil se morate prijaviti!");
+					nickname = "";
+					input.setEditable(false);
+					input.setText("Za pošiljanje sporočil se morate prijaviti!");
 				} catch (ClientProtocolException e1) {
 					e1.printStackTrace();
 				} catch (URISyntaxException e1) {
@@ -421,184 +459,96 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 				}
 			}
 		}
-		if (source == this.btnSignIn) { // Gumb za prijavo
-			if (! (this.txt_nickname.getText().equals(this.nickname) | this.txt_nickname.getText().length() == 0)) {
-				Boolean in = new Boolean(true);
-				try { 
-					in = signedIn(this.txt_nickname.getText());
-				} catch (ClientProtocolException e1) {
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				if (in) {
-					this.input.setText("Izberite si drugo ime, to že obstaja!");
-					this.input.setEditable(false);
-				} else {
-					this.previousNickname = this.nickname;
-					this.nickname = this.txt_nickname.getText();
-					MenuSelectionManager.defaultManager().clearSelectedPath();
-					this.input.setEditable(true);
-					this.input.setText("");
-					this.input.requestFocus();
-					try {
-						if (signedIn(this.previousNickname)) { 
-							App.logOut(this.previousNickname);
-						}
-						App.logIn(this.nickname);
-					} catch (ClientProtocolException e1) {
-						e1.printStackTrace();
-					} catch (URISyntaxException e1) {
-						e1.printStackTrace();
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-				}
-			}
+		if (source == btnSignIn) { // Gumb za prijavo
+			changeNickname();
 		}
-		if (source == this.btnDelete) { // Gumb za izbris pogovora
-			this.output.setText("");
+		if (source == btnDelete) { // Gumb za izbris pogovora
+			output.setText("");
 			MenuSelectionManager.defaultManager().clearSelectedPath();
-		} if (source == this.global) {
-			if (! this.global.isSelected()) {
-				if (this.recipient.length() == 0) {
-					this.txt_recipient.setText("");
-					this.txt_recipient.requestFocus();
-					this.input.setEditable(false);
-					this.input.setText("Izberite prejemnika ali pošiljajte javno sporočilo!");
+		} if (source == global) {
+			if (! global.isSelected()) {
+				if (recipient.length() == 0) {
+					txt_recipient.setText("");
+					txt_recipient.requestFocus();
+					input.setEditable(false);
+					input.setText("Izberite prejemnika ali pošiljajte javno sporočilo!");
 				} else {
-					this.input.setEditable(true);
-					this.input.setText("");
-					this.input.requestFocus();
+					input.setEditable(true);
+					input.setText("");
+					input.requestFocus();
 				}
 			} else {
-				this.input.setEditable(true);
-				this.input.setText("");
-				this.input.requestFocus();
+				input.setEditable(true);
+				input.setText("");
+				input.requestFocus();
 			}
 		} 
 		// Meni za izbiro barve okna
-		if (source == this.wdWhite) {
-			this.output.setBackground(new Color(255,255,255));
-			txt_signedInUsers.setBackground(SystemColor.menu);
-		} if (source == this.wdBlue) {	
-		} if (source == this.wdGreen) {
-			this.output.setBackground(new Color(152,251,152));
-			this.txt_signedInUsers.setBackground(new Color(143,188,143));
-		} if (source == this.wdBlue) {
-			this.output.setBackground(new Color(176,224,230));
-			this.txt_signedInUsers.setBackground(new Color(176,196,222));
-		} if (source == this.wdYellow) {
-			this.output.setBackground(new Color(255,255,153));
-			this.txt_signedInUsers.setBackground(new Color(255,228,181));
+		if (source == wdWhite) {
+			output.setBackground(new Color(255,255,255));
+			txt_signedInUsers.setBackground(SystemColor.menu);	
+		} if (source == wdGreen) {
+			output.setBackground(new Color(152,251,152));
+			txt_signedInUsers.setBackground(new Color(143,188,143));
+		} if (source == wdBlue) {
+			output.setBackground(new Color(176,224,230));
+			txt_signedInUsers.setBackground(new Color(176,196,222));
+		} if (source == wdYellow) {
+			output.setBackground(new Color(255,255,153));
+			txt_signedInUsers.setBackground(new Color(255,228,181));
 		} 
 		// Meni za izbiro barve fonta
-		if (source == this.ftBlack) {
-			this.output.setForeground(new Color(0,0,0));
-		} if (source == this.ftBlue) {
-			this.output.setForeground(new Color(0,0,205));
-		} if (source == this.ftGreen) {
-			this.output.setForeground(new Color(0,100,0));
+		if (source == ftBlack) {
+			output.setForeground(new Color(0,0,0));
+		} if (source == ftBlue) {
+			output.setForeground(new Color(0,0,205));
+		} if (source == ftGreen) {
+			output.setForeground(new Color(0,100,0));
 		}  
 		// Meni za izbiro velikosti fonta
-		if (source == this.ftSize10) {
-			this.output.setFont(new Font("Monospaced", Font.BOLD, 10));
-			this.txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 10));
-			this.input.setFont(new Font("Tahoma", Font.PLAIN, 10));
-			this.txt_recipient.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 10));
-		} if (source == this.ftSize12) {
-			this.output.setFont(new Font("Monospaced", Font.BOLD, 12));
-			this.txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 12));
-			this.input.setFont(new Font("Tahoma", Font.PLAIN, 12));
-			this.txt_recipient.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 12));
-		} if (source == this.ftSize14) {
-			this.output.setFont(new Font("Monospaced", Font.BOLD, 14));
-			this.txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 14));
-			this.input.setFont(new Font("Tahoma", Font.PLAIN, 14));
-			this.txt_recipient.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
+		if (source == ftSize10) {
+			output.setFont(new Font("Monospaced", Font.BOLD, 10));
+			txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 10));
+			input.setFont(new Font("Tahoma", Font.PLAIN, 10));
+			txt_recipient.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 10));
+		} if (source == ftSize12) {
+			output.setFont(new Font("Monospaced", Font.BOLD, 12));
+			txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 12));
+			input.setFont(new Font("Tahoma", Font.PLAIN, 12));
+			txt_recipient.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 12));
+		} if (source == ftSize14) {
+			output.setFont(new Font("Monospaced", Font.BOLD, 14));
+			txt_signedInUsers.setFont(new Font("Monospaced", Font.BOLD, 14));
+			input.setFont(new Font("Tahoma", Font.PLAIN, 14));
+			txt_recipient.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
 		}
-		
-
-
-		
-		if (source == this.btnTest) {
-			
-			try {
-				App.logIn("Test");
-				App.sendMessage(true, "Test", "Ursa", "Pa da vidmo");
-				App.sendMessage(false, "Test", "Ursa", "Pa da vidmo zasebno");
-			} catch (ClientProtocolException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (URISyntaxException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			
-		}
-			
-		
 	}
-
+	
+	// Vnosi besedila
 	public void keyTyped(KeyEvent e) {
 		Object source = e.getSource();
 		
-		if (source == this.txt_nickname) {		// Vnos vzdevka
+		if (source == txt_nickname) {		// Vnos vzdevka
 			if (e.getKeyChar() == '\n') {
-				if (! (this.txt_nickname.getText().equals(this.nickname) | this.txt_nickname.getText().length() == 0)) {
-					Boolean in = new Boolean(true);
-					try { 
-						in = signedIn(this.txt_nickname.getText());
-					} catch (ClientProtocolException e1) {
-						e1.printStackTrace();
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-					if (in) {
-						this.input.setText("Izberite si drugo ime, to že obstaja!");
-						this.input.setEditable(false);
-					} else {
-						this.previousNickname = this.nickname;
-						this.nickname = this.txt_nickname.getText();
-						MenuSelectionManager.defaultManager().clearSelectedPath();
-						this.input.setEditable(true);
-						this.input.setText("");
-						this.input.requestFocus();
-						try {
-							if (signedIn(this.previousNickname)) { 
-								App.logOut(this.previousNickname);
-							}
-							App.logIn(this.nickname);
-						} catch (ClientProtocolException e1) {
-							e1.printStackTrace();
-						} catch (URISyntaxException e1) {
-							e1.printStackTrace();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-					}
-				}
+				changeNickname();
 			}
 		} 
-		if (source == this.txt_recipient) {		// Vnos prejemnika
+		if (source == txt_recipient) {		// Vnos prejemnika
 			if (e.getKeyChar() == '\n') {
-				if (this.txt_recipient.getText().length() != 0) {
-					this.recipient = this.txt_recipient.getText();
-					this.global.setSelected(false);
-					this.input.setEditable(true);
-					this.input.requestFocus();
-					this.input.setText("");
+				if (txt_recipient.getText().length() != 0) {
+					recipient = txt_recipient.getText();
+					global.setSelected(false);
+					input.setEditable(true);
+					input.requestFocus();
+					input.setText("");
 				}
 			}
 		}
-		if (source == this.input) {		// Vnos besedila
+		if (source == input) {		// Vnos sporočil
 			if (e.getKeyChar() == '\n') {
 				try {
-					this.addSentMessage(this.nickname, this.input.getText());
-					this.input.setText("");
+					addSentMessage(this.nickname, input.getText());
+					input.setText("");
 				} catch (ClientProtocolException e1) {
 					e1.printStackTrace();
 				} catch (IOException e1) {
@@ -610,6 +560,8 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		}
 	}
 
+	
+	// Za nas nepotrebni funkciji
 	public void keyPressed(KeyEvent e) { }
 
 	public void keyReleased(KeyEvent e) { }

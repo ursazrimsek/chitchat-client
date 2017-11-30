@@ -15,25 +15,11 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 /**
- * Hello ChitChat!
+ * Razred, ki skrbi za pogovor s serverjem.
  */
 public class App {
-    public static void main(String[] args) throws ClientProtocolException, IOException, URISyntaxException {
-    	String hello = Request.Get("http://chitchat.andrej.com")
-    						.execute()
-                            .returnContent().asString();
-        System.out.println(hello);
-        
-        logIn("Ursa");
-        logIn("Toto");
-//        getUsers();
-//        sendMessage(true, "Toto", "", "halohalo!");
-//        sendMessage(false, "zamudnik", "Toto", "Vse najboljse za 13. rojstni dan!");
-//        sendMessage(true, "Ursa", "....", "dkflw!");
-//        recieveMessages("Toto");
-    }
-    
-    
+	
+	// Vrne seznam prijavljenih uporabnikov (razred User)
     public static List<User> getUsers() throws ClientProtocolException, IOException {
     	String users = Request.Get("http://chitchat.andrej.com/users")
 							.execute()
@@ -47,7 +33,7 @@ public class App {
 		return users_object;
     }
     
-    
+    // Prijavi uporabnika
     public static Boolean logIn(String user) throws URISyntaxException, ClientProtocolException, IOException {
 	    try {	
     		URI uri = new URIBuilder("http://chitchat.andrej.com/users")
@@ -61,7 +47,7 @@ public class App {
 	    }
     }
     
-    
+    // Odjavi uporabnika
     public static void logOut(String user) throws URISyntaxException, ClientProtocolException, IOException {
     	URI uri = new URIBuilder("http://chitchat.andrej.com/users")
 		          .addParameter("username", user)
@@ -70,8 +56,7 @@ public class App {
     	Request.Delete(uri).execute().returnContent().asString();
     }
     
-
-    
+    // Prejme sporočila za danega uporabnika (razred Messages)
     public static List<Message> recieveMessages(String user) throws URISyntaxException, ClientProtocolException, IOException {
 		URI uri = new URIBuilder("http://chitchat.andrej.com/messages")
 					.addParameter("username", user)
@@ -90,27 +75,24 @@ public class App {
 		return messages;
     }
     
-    
+    // Pošlje sporočilo
     public static void sendMessage(Boolean global, String sender, String recipient, String text) throws ClientProtocolException, IOException, URISyntaxException {
-    	  URI uri = new URIBuilder("http://chitchat.andrej.com/messages")
-    	          .addParameter("username", sender)
-    	          .build();
-    	  String message = "";
+    	URI uri = new URIBuilder("http://chitchat.andrej.com/messages")
+    	        .addParameter("username", sender)
+    	        .build();
+    	String message = "";
+    	
+    	if (global) {
+    		message = "{\"global\" : true, \"text\" :\"" + text + "\"}";
+    	} else {
+    		message = "{\"global\" : false, \"recipient\" : \"" + recipient + "\", \"text\" :\"" + text + "\"}";
+    	}
     	  
-    	  if (global) {
-    		  message = "{\"global\" : true, \"text\" :\"" + text + "\"}";
-    	  } else {
-    		  message = "{\"global\" : false, \"recipient\" : \"" + recipient + "\", \"text\" :\"" + text + "\"}";
-    	  }
-    	  
-    	  try {
-    	  Request.Post(uri).bodyString(message, ContentType.APPLICATION_JSON)
-    	          		.execute()
-    	          		.returnContent().asString();
-    	  } 
-    	  catch (Exception HttpResponseException) {
-    		  System.out.println(sender + "not logged in");
-  	      }
-    }
-    
+    	try {
+    	Request.Post(uri).bodyString(message, ContentType.APPLICATION_JSON)
+    	       		.execute()
+    	       		.returnContent().asString();
+    	} 
+    	catch (Exception HttpResponseException) { }
+    } 
 }
