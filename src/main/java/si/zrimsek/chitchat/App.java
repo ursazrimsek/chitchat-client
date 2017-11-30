@@ -27,8 +27,8 @@ public class App {
         logIn("Ursa");
         logIn("Toto");
 //        getUsers();
-        sendMessage(true, "Toto", "", "halohalo!");
-        sendMessage(false, "zamudnik", "Toto", "Vse najboljse za 13. rojstni dan!");
+//        sendMessage(true, "Toto", "", "halohalo!");
+//        sendMessage(false, "zamudnik", "Toto", "Vse najboljse za 13. rojstni dan!");
 //        sendMessage(true, "Ursa", "....", "dkflw!");
 //        recieveMessages("Toto");
     }
