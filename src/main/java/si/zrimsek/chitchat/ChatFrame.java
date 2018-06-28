@@ -69,6 +69,7 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	private JMenuItem wdBlue;
 	private JMenuItem wdWhite;
 	private JMenuItem wdYellow;
+	private JRadioButton parrot;
 	
 	
 	public ChatFrame() {
@@ -298,6 +299,11 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 		global.setSelected(true);
 		menuBar.add(global);
 		global.setToolTipText("Javno ali zasebno sporočilo?");
+		
+		parrot = new JRadioButton("Papiga");
+		parrot.addActionListener(this);
+		menuBar.add(parrot);
+		parrot.setToolTipText("Se želite pogovarjati s papigo?");
 	
 
 		// Ko se okno odpre
@@ -366,12 +372,19 @@ public class ChatFrame extends JFrame implements ActionListener, KeyListener {
 	private void addSentMessage(String person, String message) throws ClientProtocolException, IOException, URISyntaxException {
 		String chat = output.getText();
 		String sendingTo = new String();
+		String parrotTalk = new String();
 		if (global.isSelected()) {
 			sendingTo = "(Javno pošiljanje)";
 		} else {
 			sendingTo = "(Prejemnik: " + recipient + ")";
 		}
-		output.setText(chat + person + ": " + message + " " + sendingTo + "\n") ;
+		if (parrot.isSelected()) {
+			parrotTalk = "Papiga: " + message + "!!\n";
+			if (message.length() < 50) {
+				parrotTalk = "Papiga: " + message + ", " + message.toUpperCase()+ "!!\n";
+			}
+		}
+		output.setText(chat + person + ": " + message + " " + sendingTo + "\n" + parrotTalk) ;
 		App.sendMessage(global.isSelected(), person, recipient, message);
 	}
 	
